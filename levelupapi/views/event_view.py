@@ -1,9 +1,9 @@
-from tkinter import EventType
 from django.http import HttpResponseServerError
+from django.core.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from levelupapi.models import Event, EventOrganizer, Gamer, Game
+from levelupapi.models import Event, Gamer, Game
 
 class EventView(ViewSet):
 
@@ -25,23 +25,32 @@ class EventView(ViewSet):
     
     def create(self, request):
         organizer = Gamer.objects.get(pk=request.data["organizer"])
-        game = Game.objects.get(pk=request.data["game"])
+        # game = Game.objects.get(pk=request.data["game"])
         # event_type = EventType.objects.get(pk=request.data["event_type"])
         
-        event = Event.objects.create(
-            description=request.data["description"],
-            date=request.data["date"],
-            time=request.data["time"],
-            # event_type=event_type,
-            organizer=organizer,
-            game=game
-        )
-        serializer = EventSerializer(event)
-        return Response(serializer.data)
+        # event = Event.objects.create(
+        #     description=request.data["description"],
+        #     date=request.data["date"],
+        #     time=request.data["time"],
+        #     # event_type=event_type,
+        #     organizer=organizer,
+        #     game=game
+        # )
+        # serializer = EventSerializer(event)
+        # return Response(serializer.data)
+        serializer = CreateEventSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(organizer=organizer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 class EventSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Event
-        fields = ('game', 'description', 'date', 'time', 'organizer')
-        depth = 1
+        fields = ('id', 'game', 'description', 'date', 'time', 'organizer')
+        # depth = 1
+        
+class CreateEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ['id', 'game', 'description', 'date', 'time', 'organizer']
