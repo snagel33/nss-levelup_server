@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from levelupapi.models import Game, Gamer, GameType
+from levelupapi.models import Game, Gamer, GameType, game_type
 
 class GameView(ViewSet):
 
@@ -38,6 +38,21 @@ class GameView(ViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(gamer=gamer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def update(self, request, pk):
+        game = Game.objects.get(pk=pk)
+        # game.title = request.data["title"]
+        # game.maker = request.data["maker"]
+        # game.number_of_players = request.data["number_of_players"]
+        # game.skill_level = request.data["skill_level"]
+        
+        # game_type = GameType.objects.get(pk=request.data["game_type"])
+        # game.game_type = game_type
+        # game.save()
+        serializer = CreateGameSerializer(game, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
     
 class GameSerializer(serializers.ModelSerializer):
 
