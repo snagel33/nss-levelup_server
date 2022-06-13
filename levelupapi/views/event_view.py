@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from levelupapi.models import Event, Gamer, Game
+from levelupapi.models import Event, Gamer, Game, event
 
 class EventView(ViewSet):
 
@@ -42,6 +42,13 @@ class EventView(ViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(organizer=organizer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def update(self, request, pk):
+        event = Event.objects.get(pk=pk)
+        serializer = CreateEventSerializer(event, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
     
 class EventSerializer(serializers.ModelSerializer):
     
