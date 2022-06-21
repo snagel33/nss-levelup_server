@@ -20,6 +20,12 @@ class GameView(ViewSet):
         serializer = GameSerializer(games, many=True)
         return Response(serializer.data)
     
+    def destroy(self, request, pk):
+        game = Game.objects.get(pk=pk)
+        game.delete()
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
+        
+    
     def create(self, request):
         gamer = Gamer.objects.get(user=request.auth.user)
         # game_type = GameType.objects.get(pk=request.data["game_type"])
