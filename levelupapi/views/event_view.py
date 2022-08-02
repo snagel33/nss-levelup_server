@@ -1,9 +1,10 @@
+from asyncio import events
 from django.http import HttpResponseServerError
 from django.core.exceptions import ValidationError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from levelupapi.models import Event, Gamer, Game, event
+from levelupapi.models import Event, Gamer, Game, event, gamer
 from rest_framework.decorators import action
 
 class EventView(ViewSet):
@@ -17,11 +18,14 @@ class EventView(ViewSet):
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
     def list(self, request):
-        event_types = Event.objects.all()
+        gamer = Gamer.objects.get(user=request.auth.user)
+        events = Event.objects.all()
         game = request.query_params.get('game', None)
         if game is not None:
-            event_types = event_types.filter(game=game)
-        serializer = EventSerializer(event_types, many=True)
+            events = events.filter(game=game)
+        for event in events:
+            event.joined = gamer in event.attendees.all()
+        serializer = EventSerializer(events, many=True)
         return Response(serializer.data)
     
     # def destroy(self, request, pk):
@@ -82,7 +86,7 @@ class EventSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Event
-        fields = ('id', 'game', 'description', 'date', 'time', 'organizer')
+        fields = ('id', 'game', 'description', 'date', 'time', 'organizer', 'attendees', 'joined')
         depth = 1
         
 class CreateEventSerializer(serializers.ModelSerializer):
